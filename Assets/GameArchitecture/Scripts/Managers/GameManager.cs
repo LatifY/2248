@@ -1,0 +1,148 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using TMPro;
+using System;
+
+namespace GameArchitecture
+{
+	public class GameManager : MonoBehaviour
+	{
+		#region Game State
+		public enum GameState
+		{
+			INGAME,	//0
+			PAUSED	//1
+		}
+		private GameState _gameState;
+		public GameState gameState
+		{
+			get
+			{
+				return _gameState;
+			}
+			set
+			{
+				_gameState = value;
+				ChangeGameState();
+			}
+		}
+		#endregion
+
+		public Text pausedText;
+		[SerializeField] private bool DontDestroy;
+		public static GameManager Instance;
+
+		public TextMeshProUGUI versionText;
+
+		private bool paused;
+
+		private void Awake()
+		{
+			//Screen.SetResolution(Screen.width, Screen.height, Screen.fullScreenMode, 200);
+
+			if (DontDestroy)
+			{
+				if (Instance != null)
+				{
+					Destroy(gameObject);
+				}
+				else
+				{
+					Instance = this;
+					DontDestroyOnLoad(transform.gameObject);
+				}
+			}
+			else
+			{
+				Instance = this;
+			}
+			if(versionText != null){
+				versionText.text = "v" + Application.version;
+			}
+			ChangeGameState();
+		}
+
+		private void Start() {
+			QualitySettings.vSyncCount = 0;
+			Application.targetFrameRate = 120;
+		}
+
+		public void GoPrivacyPolicy(){
+			Application.OpenURL("https://docs.google.com/document/d/");
+		}
+
+        public void GoRateGame(){
+            Application.OpenURL("market://details?id=" + "com.cobs.2248");
+        }
+
+		public void Set(TMP_InputField field){
+			PlayerPrefs.SetInt("Level", Int16.Parse(field.text));
+			print("Level set to " + PlayerPrefs.GetInt("Level",1));
+		}
+
+		public void Restart(){
+			PlayerPrefs.SetInt("Restart", 1);
+			LoadScene(1);
+		}
+
+		#region Game State
+		private void ChangeGameState()
+		{
+			switch (_gameState)
+			{
+				case GameState.INGAME:
+					paused = false;
+					Time.timeScale = 1f;
+					break;
+				case GameState.PAUSED:
+					paused = true;
+					Time.timeScale = 0f;
+					break;
+				default:
+					Debug.Log("ERROR: Unknown game state: " + gameState);
+					break;
+			}
+			Debug.Log("GAMESTATE: Game state is: " + gameState);
+		}
+		public void GameStateChanger(int changeToIndex)
+		{
+			gameState = (GameState)changeToIndex;
+		}
+		#endregion
+
+		#region Load Scene
+		/// <summary>
+		/// Pass -1 to index for loading active scene
+		/// </summary>
+		public void LoadScene(int index)
+		{
+			if (index == -1)
+			{
+				index = SceneManager.GetActiveScene().buildIndex;
+			}
+			GameObject[] transitionPanels = GameObject.FindGameObjectsWithTag("Transition");
+			Time.timeScale = 1f;
+			if (transitionPanels == null)
+			{
+				SceneManager.LoadScene(index);
+			}
+			else
+			{
+				StartCoroutine(LoadSceneEnum(index, transitionPanels[0].GetComponent<Animator>()));
+			}
+		}
+
+		private IEnumerator LoadSceneEnum(int index, Animator anim)
+		{
+			anim.SetTrigger("end");
+			yield return new WaitForSeconds(anim.GetCurrentAnimatorStateInfo(0).length);
+			SceneManager.LoadScene(index);
+		}
+		#endregion
+	}
+
+}
+
