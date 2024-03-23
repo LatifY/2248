@@ -12,6 +12,7 @@ public class GameMaster : MonoBehaviour
 {
     public static GameMaster instance;
 
+    public GameObject tutorialPanel;
     public GameObject gameGround;
     public GameObject blockPrefab;
     public GameObject linePrefab;
@@ -667,6 +668,10 @@ public class GameMaster : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(0.01f);
+
+            if(tutorialPanel.activeSelf){
+                continue;
+            }
 
             //if (pressed) Debug.Log(Time.time + ".........................");
             //  else Debug.Log(Time.time + "**");
