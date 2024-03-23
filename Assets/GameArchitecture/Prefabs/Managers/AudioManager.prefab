@@ -217,4 +217,9 @@ MonoBehaviour:
     volume: 0.5
     pitch: 1
     source: {fileID: 0}
+  - name: success
+    clip: {fileID: 8300000, guid: 2228c111f6df84634a19644351f41403, type: 3}
+    volume: 1
+    pitch: 1
+    source: {fileID: 0}
   dontDestroy: 0

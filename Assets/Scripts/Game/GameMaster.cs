@@ -17,6 +17,7 @@ public class GameMaster : MonoBehaviour
     public GameObject linePrefab;
     public ActionPanelScript actionMenu;
     public GameObject finishMenu;
+    public GameObject gameOverMenu;
     public GameObject abilityPanel;
     public Text scoreText;
     public Text bestScoreText;
@@ -653,6 +654,7 @@ public class GameMaster : MonoBehaviour
 
     IEnumerator Up()
     {
+        yield return new WaitForSeconds(1);
         while (true)
         {
             yield return new WaitForSeconds(0.01f);
@@ -874,8 +876,20 @@ public class GameMaster : MonoBehaviour
                             .GetComponent<Transform>()
                             .DOShakePosition(2f, new Vector3(6f, 3f, 3f), 5, 20f, false, true);
                     yield return new WaitForSeconds(1.8f);
-                    //SceneManager.LoadScene(2);
+                    gameOverMenu.SetActive(true);
                 }
+            }
+
+            if (CheckFinished())
+            {
+                yield return new WaitForSeconds(2f);
+                    for (int i = 0; i < 35; ++i)
+                        block[i]
+                            .GetComponent<Transform>()
+                            .DOShakePosition(2f, new Vector3(6f, 3f, 3f), 5, 20f, false, true);
+                    yield return new WaitForSeconds(1.8f);
+                finishMenu.SetActive(true);
+                break;
             }
         }
         Debug.Log("ENDED");
