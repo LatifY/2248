@@ -38,8 +38,12 @@ public class ActionPanelScript : MonoBehaviour
     }
 
     public void OpenTarget(int index){  
+        print("open target" + index);
         targetsIndexes.Add(index);
+        print(targets[index].gameObject.activeSelf);
         targets[index].gameObject.SetActive(true);
+        print(targets[index].gameObject.activeSelf);
+
         targets[index].GetComponent<Image>().sprite = targetOffSprite;
     }
 

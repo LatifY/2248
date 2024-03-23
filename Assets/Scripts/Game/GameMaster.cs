@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using GameArchitecture;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -19,8 +20,13 @@ public class GameMaster : MonoBehaviour
     public GameObject abilityPanel;
     public Text scoreText;
     public Text bestScoreText;
+    public TextMeshProUGUI levelText;
     public Button buttonEnd;
     public Toggle toggle;
+
+    public BlockController targetBlock;
+
+    public int loadLevelInstead = 0;
 
     private int level;
 
@@ -28,7 +34,8 @@ public class GameMaster : MonoBehaviour
     private string abilityStr;
     public List<int> choosenNumbers = new();
     public int targetNumberIndex = 0;
-    private List<int> targetSlotIndexes = new List<int>();
+    public List<int> targetSlotIndexes = new List<int>();
+    public List<int> activeSlotIndexes = new List<int>();
 
     public GameObject[] block;
     public GameObject[] line;
@@ -133,25 +140,66 @@ public class GameMaster : MonoBehaviour
         "1O", //70
     };
 
-    private void Awake()
+    string grid = "";
+    string targets = "";
+
+    void SaveGrid()
+    {
+        string gridNew = "";
+        for (int i = 6; i >= 0; --i)
+        {
+            for (int j = 0; j < 5; ++j)
+            {
+                gridNew += GetNumIndex(i + j * 7).ToString() + ",";
+            }
+            gridNew = gridNew.Substring(0, gridNew.Length - 1);
+            gridNew += "|";
+        }
+        gridNew = gridNew.Substring(0, gridNew.Length - 1);
+        print(gridNew);
+        PlayerPrefs.SetString("Level" + level.ToString(), gridNew);
+    }
+
+    void SaveTargets()
+    {
+        string targetsNew = "";
+        foreach (var targetSlotIndex in targetSlotIndexes)
+        {
+            targetsNew += targetSlotIndex.ToString() + "-";
+            if (activeSlotIndexes.Contains(targetSlotIndex))
+            {
+                targetsNew += "1";
+            }
+            else
+            {
+                targetsNew += "0";
+            }
+            targetsNew += "|";
+        }
+        targetsNew = targetsNew.Substring(0, targetsNew.Length - 1);
+        print(targetsNew);
+        PlayerPrefs.SetString("LevelTarget" + level.ToString(), targetsNew);
+    }
+
+    private void Awake() { }
+
+    void Start()
     {
         foreach (var num in initialNumbers)
         {
             numbers.Add(num);
         }
         instance = this;
-    }
 
-    string grid = "";
-    string targets = "";
-
-    void Start()
-    {
         level = PlayerPrefs.GetInt("currentLevel", 1);
+        if (loadLevelInstead > 0)
+        {
+            level = loadLevelInstead;
+        }
 
-        grid = PlayerPrefs.GetString("Level" + level.ToString());
+        levelText.text = "Level " + level.ToString();
+
         targets = PlayerPrefs.GetString("LevelTarget" + level.ToString()); //0-1|3-0       it means there is 2 slots active (0 and 3) and 0th one is active and third one is not active
-        //targetSlotIndexes = PlayerPrefs.GetIntArray("TargetSlotIndexes" + level.ToString());
 
         if (targets == "")
         {
@@ -161,10 +209,12 @@ public class GameMaster : MonoBehaviour
                 targetSlotIndexes.Add(randIndex);
                 actionMenu.OpenTarget(randIndex);
             }
-            else{
+            else
+            {
                 int randIndex = rand.Next(0, 4);
                 int randIndex2 = rand.Next(0, 4);
-                while(randIndex == randIndex2){
+                while (randIndex == randIndex2)
+                {
                     randIndex2 = rand.Next(0, 4);
                 }
                 targetSlotIndexes.Add(randIndex);
@@ -172,18 +222,38 @@ public class GameMaster : MonoBehaviour
                 actionMenu.OpenTarget(randIndex);
                 actionMenu.OpenTarget(randIndex2);
             }
+            SaveTargets();
         }
-        else{
+        else
+        {
             foreach (var target in targets.Split("|"))
             {
                 var targetIndex = Int16.Parse(target.Split("-")[0]);
                 var targetActive = Int16.Parse(target.Split("-")[1]);
+                print(targetIndex);
+                print(targetActive);
                 actionMenu.OpenTarget(targetIndex);
-                if(targetActive == 1){
+                if (targetActive == 1)
+                {
+                    activeSlotIndexes.Add(targetIndex);
                     actionMenu.ActivateTarget(targetIndex);
                 }
+                targetSlotIndexes.Add(targetIndex);
             }
         }
+
+        grid = PlayerPrefs.GetString("Level" + level.ToString());
+
+        if (level <= 60)
+        {
+            targetNumberIndex = level + 3;
+        }
+        else
+        {
+            targetNumberIndex = level - 55;
+        }
+
+        targetBlock.SetNumIndex(targetNumberIndex);
 
         List<int[]> gridList = new List<int[]>();
         if (grid != "")
@@ -223,8 +293,8 @@ public class GameMaster : MonoBehaviour
             SetPosition(x, i, j + 4);
             MoveDown(x, 4);
         }
-
         StartCoroutine(Up());
+        StartCoroutine(UpCheck());
         //bestScoreText.text = "Best Score: " + MenuController.bestScore.ToString();
     }
 
@@ -415,6 +485,10 @@ public class GameMaster : MonoBehaviour
         return true;
     }
 
+    bool CheckFinished(){
+        return activeSlotIndexes.Count == targetSlotIndexes.Count;
+    }
+
     IEnumerator waiter(float ss)
     {
         yield return new WaitForSeconds(20f);
@@ -499,11 +573,90 @@ public class GameMaster : MonoBehaviour
         return b;
     }
 
+    IEnumerator CoDisappear(int b)
+    {
+        block[b]
+            .GetComponent<Transform>()
+            .DOShakePosition(0.6f, new Vector3(6f, 3f, 3f), 15, 30f, false, true);
+
+        yield return new WaitForSeconds(0.6f);
+        block[b].GetComponent<CanvasGroup>().DOFade(0, 0.5f);
+        yield return new WaitForSeconds(0.5f);
+        for (int i = 0; i < 5; ++i)
+        {
+            int p = 0;
+            int cnt = 0;
+            for (int j = 0; j < 7; ++j)
+            {
+                int x = i * 7 + j;
+                int y = i * 7 + p;
+
+                if (GetChoosen(x) == false)
+                {
+                    tmp = block[x];
+                    block[x] = block[y];
+                    block[y] = tmp;
+                    md[y] = cnt;
+                    p++;
+                }
+                else
+                {
+                    Unchoose(x);
+                    cnt++;
+                }
+            }
+
+            for (int j = p; j < 7; ++j)
+            {
+                int x = i * 7 + j;
+                SetNumIndex(x, RandIndex());
+                SetPosition(x, i, j + cnt);
+                md[x] = cnt;
+            }
+        }
+
+        for (int i = 0; i < 35; ++i)
+        {
+            block[i].GetComponent<CanvasGroup>().alpha = 1;
+            MoveDown(i, md[i]);
+        }
+    }
+
+    IEnumerator UpCheck()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(0.01f);
+
+            foreach (var item in targetSlotIndexes)
+            {
+                int index = item * 7;
+                if (
+                    block[index].GetComponent<BlockController>().GetNumIndex() == targetNumberIndex
+                    && activeSlotIndexes.Contains(item) == false
+                )
+                {
+                    choosenNumbers.Add(index);
+                    block[index].GetComponent<BlockController>().Choose();
+                    StartCoroutine(CoDisappear(index));
+                    activeSlotIndexes.Add(item);
+                    actionMenu.ActivateTarget(item);
+                    SaveTargets();
+                    yield return new WaitForSeconds(2);
+                    
+                    SaveGrid();
+                    print(index + " BROOOOOOOOOOOO");
+                }
+            }
+        }
+    }
+
     IEnumerator Up()
     {
         while (true)
         {
             yield return new WaitForSeconds(0.01f);
+
             //if (pressed) Debug.Log(Time.time + ".........................");
             //  else Debug.Log(Time.time + "**");
 
@@ -559,53 +712,10 @@ public class GameMaster : MonoBehaviour
                         choosenNumbers.Add(b);
                         blockController.Choose();
                         AudioManager.Instance.PlayClip("choose");
-                        block[b]
-                            .GetComponent<Transform>()
-                            .DOShakePosition(0.6f, new Vector3(6f, 3f, 3f), 15, 30f, false, true);
 
-                        yield return new WaitForSeconds(0.6f);
-                        block[b].GetComponent<CanvasGroup>().DOFade(0, 0.5f);
-                        yield return new WaitForSeconds(0.5f);
-                        for (int i = 0; i < 5; ++i)
-                        {
-                            int p = 0;
-                            int cnt = 0;
-                            for (int j = 0; j < 7; ++j)
-                            {
-                                int x = i * 7 + j;
-                                int y = i * 7 + p;
+                        StartCoroutine(CoDisappear(b));
 
-                                if (GetChoosen(x) == false)
-                                {
-                                    tmp = block[x];
-                                    block[x] = block[y];
-                                    block[y] = tmp;
-                                    md[y] = cnt;
-                                    p++;
-                                }
-                                else
-                                {
-                                    Unchoose(x);
-                                    cnt++;
-                                }
-                            }
-
-                            for (int j = p; j < 7; ++j)
-                            {
-                                int x = i * 7 + j;
-                                SetNumIndex(x, RandIndex());
-                                SetPosition(x, i, j + cnt);
-                                md[x] = cnt;
-                            }
-                        }
-
-                        for (int i = 0; i < 35; ++i)
-                        {
-                            block[i].GetComponent<CanvasGroup>().alpha = 1;
-                            MoveDown(i, md[i]);
-                        }
-
-                        yield return new WaitForSeconds(1);
+                        yield return new WaitForSeconds(2);
 
                         SaveGrid();
                         AbilityClose();
@@ -771,44 +881,6 @@ public class GameMaster : MonoBehaviour
         Debug.Log("ENDED");
     }
 
-    void SaveGrid()
-    {
-        string gridNew = "";
-        for (int i = 6; i >= 0; --i)
-        {
-            for (int j = 0; j < 5; ++j)
-            {
-                gridNew += GetNumIndex(i + j * 7).ToString() + ",";
-            }
-            gridNew = gridNew.Substring(0, gridNew.Length - 1);
-            gridNew += "|";
-        }
-        gridNew = gridNew.Substring(0, gridNew.Length - 1);
-        print(gridNew);
-        PlayerPrefs.SetString("Level" + level.ToString(), gridNew);
-    }
-
-    void SaveTargets()
-    {
-        string targetsNew = "";
-        foreach (var targetSlotIndex in targetSlotIndexes)
-        {
-            targetsNew += targetSlotIndex.ToString() + "-";
-            if (actionMenu.targetsIndexes.Contains(targetSlotIndex))
-            {
-                targetsNew += "1";
-            }
-            else
-            {
-                targetsNew += "0";
-            }
-            targetsNew += "|";
-        }
-        targetsNew = targetsNew.Substring(0, targetsNew.Length - 1);
-        print(targetsNew);
-        PlayerPrefs.SetString("LevelTarget" + level.ToString(), targetsNew);
-    }
-
     void Update()
     {
         /*if (Camera.main.aspect > 16f / 9f) sh = 1;
@@ -822,6 +894,8 @@ public class GameMaster : MonoBehaviour
         //if (Input.GetMouseButtonUp(0)) pressed = false;
         //mousePos = Input.mousePosition;
         //Debug.Log(mousePos.x + " " + mousePos.y);
+
+
 
         if (Input.touchCount > 0)
         {

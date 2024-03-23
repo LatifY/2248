@@ -47,7 +47,7 @@ public class GameEditorGUI : Editor
 
 	private void OnEnable()
 	{
-		LangsList = MultiLang.GetAllLanguages();
+		//LangsList = MultiLang.GetAllLanguages();
 		infoText.fontSize = 12;
 		infoText.normal.textColor = new Color(0.8f, 0.8f, 0.8f);
 
