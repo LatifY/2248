@@ -95,7 +95,7 @@ public class BlockController : MonoBehaviour
 
     public void SetPosition(int i, int j)
     {
-        var pos = new Vector3 { x = -300 + i * 150, y = -500 + j * 150 };
+        var pos = new Vector3 { x = -300 + i * 150, y = -435 + j * 150 };
         //var pos = new Vector3 { x = -220 + i * 110, y = -300 + j * 110 };
         this.GetComponent<RectTransform>().anchoredPosition = pos;
         //this.GetComponent<Image>().color = new Color(0.8f, 0.8f, 0.8f, 1);

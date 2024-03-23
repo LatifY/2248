@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.Common;
 using GoogleMobileAds;
 using GoogleMobileAds.Api;
 using UnityEngine;
@@ -27,6 +28,9 @@ public class InterstitialAdManager : MonoBehaviour
     private string testId;
     private string id;
     private bool adShowed = false;
+
+    public float timer;
+    private bool canTimer = true;
 
     private void Awake()
     {
@@ -59,6 +63,7 @@ public class InterstitialAdManager : MonoBehaviour
 
     public void Request()
     {
+        canTimer = false;
         Time.timeScale = 0;
         adPanel.SetActive(true);
         AdRequest request = new AdRequest();
@@ -79,6 +84,12 @@ public class InterstitialAdManager : MonoBehaviour
 
     private void Update()
     {
+        if(canTimer){
+            timer -= Time.deltaTime;
+            if(timer <= 0){
+                Request();
+            }
+        }
         if (!adShowed && _interstitialAd != null)
         {
             if (_interstitialAd.CanShowAd())

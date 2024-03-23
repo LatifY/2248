@@ -198,6 +198,10 @@ public class GameMaster : MonoBehaviour
             level = loadLevelInstead;
         }
 
+        if(level > 70){
+            SceneManager.LoadScene(0);
+        }
+
         levelText.text = "Level " + level.ToString();
 
         targets = PlayerPrefs.GetString("LevelTarget" + level.ToString()); //0-1|3-0       it means there is 2 slots active (0 and 3) and 0th one is active and third one is not active
@@ -627,7 +631,12 @@ public class GameMaster : MonoBehaviour
     {
         while (true)
         {
+
             yield return new WaitForSeconds(0.01f);
+
+            if(usingAbility){
+                continue;
+            }
 
             foreach (var item in targetSlotIndexes)
             {
@@ -876,6 +885,8 @@ public class GameMaster : MonoBehaviour
                             .GetComponent<Transform>()
                             .DOShakePosition(2f, new Vector3(6f, 3f, 3f), 5, 20f, false, true);
                     yield return new WaitForSeconds(1.8f);
+                    AudioManager.Instance.PlayClip("error");
+
                     gameOverMenu.SetActive(true);
                 }
             }
@@ -888,6 +899,10 @@ public class GameMaster : MonoBehaviour
                             .GetComponent<Transform>()
                             .DOShakePosition(2f, new Vector3(6f, 3f, 3f), 5, 20f, false, true);
                     yield return new WaitForSeconds(1.8f);
+
+                DiamondManager.instance.AddDiamond(100);
+                PlayerPrefs.SetInt("currentLevel", level + 1);
+                AudioManager.Instance.PlayClip("success");
                 finishMenu.SetActive(true);
                 break;
             }

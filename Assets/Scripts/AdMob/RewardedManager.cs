@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using GoogleMobileAds.Api;
 using GoogleMobileAds.Common;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -31,6 +32,7 @@ public class RewardedManager : MonoBehaviour
 
     public GameObject loading;
     private int rewardAmount = 2;
+    public TextMeshProUGUI rewardText;
 
     public bool isAdRequested = false;
 
@@ -97,6 +99,9 @@ public class RewardedManager : MonoBehaviour
                             (Reward reward) =>
                             {
                                 DiamondManager.instance.AddDiamond(rewardAmount);
+                                if(rewardText != null){
+                                    rewardText.text = "+" + (rewardAmount *2).ToString();
+                                }
                                 canRequestAd = true;
                             }
                         );

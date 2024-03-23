@@ -45,8 +45,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   adState: 1
-  releaseId: 
+  releaseId: ca-app-pub-7807318277067926/1365046730
   testId: ca-app-pub-3940256099942544/5224354917
   loading: {fileID: 0}
+  rewardText: {fileID: 0}
   isAdRequested: 0
   canRequestAd: 1

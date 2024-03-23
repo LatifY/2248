@@ -222,4 +222,9 @@ MonoBehaviour:
     volume: 1
     pitch: 1
     source: {fileID: 0}
+  - name: error
+    clip: {fileID: 8300000, guid: 489ae08cf905843a69094280dcfef900, type: 3}
+    volume: 1
+    pitch: 1
+    source: {fileID: 0}
   dontDestroy: 0
