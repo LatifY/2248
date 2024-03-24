@@ -55,7 +55,7 @@ public class BannerManager : MonoBehaviour
     {
         if (_bannerView == null)
         {
-            _bannerView = new BannerView(id, AdSize.Banner, AdPosition.Bottom);
+            _bannerView = new BannerView(id, AdSize.SmartBanner, AdPosition.Bottom);
         }
 
         AdRequest request = new AdRequest.Builder().Build();
