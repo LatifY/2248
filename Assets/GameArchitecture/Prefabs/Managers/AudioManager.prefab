@@ -227,4 +227,29 @@ MonoBehaviour:
     volume: 1
     pitch: 1
     source: {fileID: 0}
+  - name: swoosh
+    clip: {fileID: 8300000, guid: 9e20436a08a684fc99b58201a0bab7cd, type: 3}
+    volume: 1
+    pitch: 1
+    source: {fileID: 0}
+  - name: maximize
+    clip: {fileID: 8300000, guid: 7170ff613635a4dc1a7d6ece1abbacd8, type: 3}
+    volume: 1
+    pitch: 1
+    source: {fileID: 0}
+  - name: minimize
+    clip: {fileID: 8300000, guid: 02af740b74daa4ed8aece4c19dd231a2, type: 3}
+    volume: 1
+    pitch: 1
+    source: {fileID: 0}
+  - name: preend
+    clip: {fileID: 8300000, guid: a38790cfcbaa24a83a5926be9a32ede3, type: 3}
+    volume: 1
+    pitch: 1
+    source: {fileID: 0}
+  - name: cheers
+    clip: {fileID: 8300000, guid: e92746c1bcf634c119c9c4d90bf93b59, type: 3}
+    volume: 1
+    pitch: 1
+    source: {fileID: 0}
   dontDestroy: 0

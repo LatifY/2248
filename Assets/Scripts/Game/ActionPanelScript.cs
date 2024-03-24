@@ -44,11 +44,9 @@ public class ActionPanelScript : MonoBehaviour
         targets[index].gameObject.SetActive(true);
         print(targets[index].gameObject.activeSelf);
 
-        targets[index].GetComponent<Image>().sprite = targetOffSprite;
     }
 
     public void ActivateTarget(int index){
-        targets[index].GetComponent<Image>().sprite = targetOnSprite;
-        targets[index].GetComponent<Animator>().SetTrigger("activate");
+        targets[index].GetComponent<Animator>().SetTrigger("end");
     }
 }

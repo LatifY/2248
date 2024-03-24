@@ -199,7 +199,8 @@ public class GameMaster : MonoBehaviour
             level = loadLevelInstead;
         }
 
-        if(level > 70){
+        if (level > 70)
+        {
             SceneManager.LoadScene(0);
         }
 
@@ -361,6 +362,7 @@ public class GameMaster : MonoBehaviour
         {
             return;
         }
+        AudioManager.Instance.PlayClip("maximize");
         abilityStr = ability;
         abilityPanel.SetActive(true);
         usingAbility = true;
@@ -370,6 +372,7 @@ public class GameMaster : MonoBehaviour
     {
         abilityPanel.SetActive(false);
         usingAbility = false;
+        AudioManager.Instance.PlayClip("minimize");
 
         actionMenu.CloseSlots();
         foreach (var choosenNumber in choosenNumbers)
@@ -491,7 +494,8 @@ public class GameMaster : MonoBehaviour
         return true;
     }
 
-    bool CheckFinished(){
+    bool CheckFinished()
+    {
         return activeSlotIndexes.Count == targetSlotIndexes.Count;
     }
 
@@ -579,15 +583,21 @@ public class GameMaster : MonoBehaviour
         return b;
     }
 
-    IEnumerator CoDisappear(int b)
+    IEnumerator CoDisappear(int b, bool moveY = false)
     {
-        block[b]
-            .GetComponent<Transform>()
-            .DOShakePosition(0.6f, new Vector3(6f, 3f, 3f), 15, 30f, false, true);
+        Transform t = block[b].GetComponent<Transform>();
+        t.DOShakePosition(1f, new Vector3(6f, 3f, 3f), 15, 30f, false, true);
 
-        yield return new WaitForSeconds(0.6f);
-        block[b].GetComponent<CanvasGroup>().DOFade(0, 0.5f);
-        yield return new WaitForSeconds(0.5f);
+        AudioManager.Instance.PlayClipWithRandomPitch("swoosh", 0.9f, 1.1f);
+
+        if (moveY)
+        {
+            t.DOMoveY(t.position.y - 130, 0.6f);
+            t.DORotateQuaternion(new Quaternion(0, 0, 360, 1), 10f);
+        }
+
+        block[b].GetComponent<CanvasGroup>().DOFade(0, 0.3f);
+        yield return new WaitForSeconds(1f);
         for (int i = 0; i < 5; ++i)
         {
             int p = 0;
@@ -632,10 +642,10 @@ public class GameMaster : MonoBehaviour
     {
         while (true)
         {
-
             yield return new WaitForSeconds(0.01f);
 
-            if(usingAbility){
+            if (usingAbility)
+            {
                 continue;
             }
 
@@ -649,12 +659,12 @@ public class GameMaster : MonoBehaviour
                 {
                     choosenNumbers.Add(index);
                     block[index].GetComponent<BlockController>().Choose();
-                    StartCoroutine(CoDisappear(index));
+                    StartCoroutine(CoDisappear(index, true));
                     activeSlotIndexes.Add(item);
                     actionMenu.ActivateTarget(item);
                     SaveTargets();
                     yield return new WaitForSeconds(2);
-                    
+
                     SaveGrid();
                     print(index + " BROOOOOOOOOOOO");
                 }
@@ -669,7 +679,8 @@ public class GameMaster : MonoBehaviour
         {
             yield return new WaitForSeconds(0.01f);
 
-            if(tutorialPanel.activeSelf){
+            if (tutorialPanel.activeSelf)
+            {
                 continue;
             }
 
@@ -885,6 +896,8 @@ public class GameMaster : MonoBehaviour
                 if (CheckEndgame())
                 {
                     yield return new WaitForSeconds(2f);
+                    AudioManager.Instance.PlayClipWithRandomPitch("preend", 0.95f, 1.05f);
+
                     for (int i = 0; i < 35; ++i)
                         block[i]
                             .GetComponent<Transform>()
@@ -899,15 +912,17 @@ public class GameMaster : MonoBehaviour
             if (CheckFinished())
             {
                 yield return new WaitForSeconds(2f);
-                    for (int i = 0; i < 35; ++i)
-                        block[i]
-                            .GetComponent<Transform>()
-                            .DOShakePosition(2f, new Vector3(6f, 3f, 3f), 5, 20f, false, true);
-                    yield return new WaitForSeconds(1.8f);
+                AudioManager.Instance.PlayClipWithRandomPitch("preend", 0.95f, 1.05f);
+                for (int i = 0; i < 35; ++i)
+                    block[i]
+                        .GetComponent<Transform>()
+                        .DOShakePosition(2f, new Vector3(6f, 3f, 3f), 5, 20f, false, true);
+                yield return new WaitForSeconds(1.8f);
 
                 DiamondManager.instance.AddDiamond(100);
                 PlayerPrefs.SetInt("currentLevel", level + 1);
                 AudioManager.Instance.PlayClip("success");
+                AudioManager.Instance.PlayClip("cheers");
                 finishMenu.SetActive(true);
                 break;
             }

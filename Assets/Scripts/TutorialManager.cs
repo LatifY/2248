@@ -19,7 +19,7 @@ public class TutorialManager : MonoBehaviour
     private int pageIndex;
 
     private void Awake()
-    {
+    { 
         return;
         if (PlayerPrefs.GetInt("Tutorial") == 1)
         {
